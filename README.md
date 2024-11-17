@@ -16,16 +16,10 @@ Note that the tree diameter is the maximum distance between any two leaves of th
 
 #### Publications:
 
-The latest version of TreeShrink is described in:
+The algorithms are yet to be published.
 
 ## Usage: 
-After installing TreeShrink, you can type 
 
-~~~bash
-run_treeshrink.py -h
-~~~
-
-to learn about all the options. 
 
 ## Examples:
 The TreeShrink package comes with several testing trees that can be found in [test_data.zip](test_data.zip). If you downloaded TreeShrink from Github, you should have ```test_data.zip``` in your ```TreeShrink``` folder. If you installed using Anaconda, you should download [test_data.zip](https://github.com/uym2/TreeShrink/blob/master/test_data.zip) to your machine. Unzip ```test_data.zip``` before running the following examples.
