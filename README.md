@@ -21,6 +21,6 @@ In each cell, the usage of the specific algorithm is described in comments.
 
 
 
-#### Publications
+## Publications
 
 The algorithms are yet to be published.
