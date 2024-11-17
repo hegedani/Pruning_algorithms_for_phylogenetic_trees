@@ -1,4 +1,4 @@
-The listed algorithms can be used to prune exceptionally long branches in phylogenetic trees. 
+The following algorithms can be used to prune exceptionally long branches in phylogenetic trees. 
 
 - **Primitive Straight-Forward Approach (PSFA)**
     - Identify the longest edge and calculate the sizes of the two components resulting from its removal
