@@ -1,6 +1,7 @@
 TreeShrink is an algorithm for detecting abnormally long branches in one or more phylogenetic trees. 
 
-- **Inputs**: 
+- **Inputs**:
+- alma
     - One or more phylogenetic trees with branch lengths. If more than one, the trees should be on overlapping sets of species (though missing data are allowed). 
     - Optional: a number `k` ≤ the total number of species.
     - Optional: a selection of one of the three implemented algorithms for outlier detection.
