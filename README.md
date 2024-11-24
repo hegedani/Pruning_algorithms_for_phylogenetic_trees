@@ -1,18 +1,18 @@
 The following algorithms can be used to prune exceptionally long branches in phylogenetic trees. 
 
 - **Primitive Straight-Forward Approach (PSFA)**
-    - Identify the longest edge and calculate the sizes of the two components resulting from its removal
+    - Identifies the longest edge and calculates the sizes of the two components resulting from its removal
 
-    - If the size of the smaller component is within the tolerance range and the edge was excessively long, remove it
+    - If the size of the smaller component is within the tolerance range and the edge was excessively long, removes it
     
-    - Define criteria for considering an edge as "too long", denoted by `longest_to_average` in the code
+    - Have to define criteria for considering an edge as "too long", denoted by `longest_to_average` in the code
 
-    - Specify the tolerance range, denoted by `threshold`
+    - Have to specify the tolerance range, denoted by `threshold`
 
 - **Circular Pruning Algorithm (CPA)**
     - The goal is to prune the trees to make them roughly circular
 
-    - Choose a root and remove points that are beyond a specified distance
+    - Chooses a root and removes leaves that are beyond a specified distance
 
     - Two conditions must be satisfied:
     
@@ -20,9 +20,9 @@ The following algorithms can be used to prune exceptionally long branches in phy
         
       - It should not be possible to significantly reduce the radius by removing only a few nodes (adjust `beta` and `M_n`)
 
-    - Randomly select some roots and prune to meet both conditions (adjust `root_to_node_ratio` and `min_num_of_roots`)
+    - Randomly selects some roots and prunes to meet both conditions (adjust `root_to_node_ratio` and `min_num_of_roots`)
 
-    - Among all the pruned trees, pick the best one
+    - Among all the pruned trees, picks the best one
 
 - **CPA + PSFA**
     - After pruning with CPA, excessively long branches may remain
