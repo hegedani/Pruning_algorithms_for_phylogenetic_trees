@@ -1,5 +1,5 @@
 # Phylogenetic tree pruner
-A package for pruning phylogenetic trees.
+A package for pruning phylogenetic trees. The final package is not yet available, however you can download the latest test version from TestPyPi: https://test.pypi.org/project/treepruner/ .
 
 ## How to use
 After installing the package use following import: <br>
