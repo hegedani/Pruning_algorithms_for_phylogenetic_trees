@@ -82,7 +82,7 @@ or <br>
 
     - 3.  Excluding those extreme outlier branches containing less than 0.05 (or a given) proportion of the tips.
 
-  - 2<sup>nd</sup> part: Pruning the midpoint rooted tree based on root-to-tip distances. Excluding tips based on the R2T IQRs, while iteratively midpoint rooting and excluding the top gretaest extreme outlier.
+  - 2<sup>nd</sup> part: Pruning the midpoint rooted tree based on root-to-tip distances. Excluding tips based on the R2T IQRs, while iteratively midpoint rooting and excluding the most extreme outlier.
 
     - 4.  Midpoint rooting the tree (after pruning with method described in the 1<sup>st</sup> part).
 
@@ -90,15 +90,13 @@ or <br>
 
     - 6.  Excluding the most extreme outlier tip based on the IQR for root-to-tip distances.
 
-    - 7.  Repeating point 4. to 6. till there are no more extreme outlier IQR tip is found.
+    - 7.  Repeating point 4. to 6. until there are no more extreme outlier IQR tip is found.
 
-    - 8.  Unrooting the pruned tree. 
+    - 8.  Unrooting the pruned tree.
 
   - The function has three arguments in the following order:
 
     - `name_of_the_tree` is the same as before
-
-    - `tipprop` is a number between 0 and 1. The algorithm only deletes a branch, if the proportion of the leaves on one side of that branch is at most this value. By default, `tipprop = 1`, meaning that the algorithm will always delete the branch, if the other two requirements are satisfied (that is we do not cut more than the threshold and the branch is indeed an outlier) .
 
     - `threshold` is the proportion of leaves that must be kept on the tree. The default value is `threshold = 0.9` meaning that the algorithm will not cut more than 10% of the leaves.
 
