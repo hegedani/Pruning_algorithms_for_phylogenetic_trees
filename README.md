@@ -139,5 +139,3 @@ final_output, final_percentage = treepruner.prune_tree_CPA("pre-pruned_tree.nwk"
 
 print(final_percentage)
 ```
-
-    - `name_of_output` is the same as before.
