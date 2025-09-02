@@ -2,13 +2,13 @@ import ete3
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from .utils import (NEWICK_TREE, one_primitive_step, is_valid_tree, prune_by_branch_length, prune_by_root_to_tip)
+from .utils import (one_primitive_step, prune_by_branch_length, prune_by_root_to_tip, validate_psfa_arguments, validate_cpa_arguments, validate_iqr_arguments)
 
 
 def prune_tree_PSFA(name_of_the_tree, threshold=90, longest_to_average=9, name_of_output="psfa_tree.nwk"):
-    if not is_valid_tree(name_of_the_tree):
-        raise TypeError("The input file is not a valid phylogenetic tree. Please make sure that name_of_the_tree is a valid .nwk tree.")
-    
+
+    validate_psfa_arguments(name_of_the_tree, threshold, longest_to_average, name_of_output)
+
     tree = ete3.Tree(name_of_the_tree, format=1, quoted_node_names=True)
     leaf_names = tree.get_leaf_names()
     num_leaves = len(leaf_names)
@@ -27,10 +27,10 @@ def prune_tree_PSFA(name_of_the_tree, threshold=90, longest_to_average=9, name_o
     return tree, 100 * num_leaves / original_num_leaves
 
 
-def prune_tree_CPA(name_of_the_tree, root_to_node_ratio=0.1, min_num_of_roots=15, M_n=0, threshold=90, beta=20, name_of_output="cpa_tree.nwk", show_plot=False, show_pruned_tips=False, safe_tips=[]):
-    if not is_valid_tree(name_of_the_tree):
-        raise TypeError("The input file is not a valid phylogenetic tree. Please make sure that name_of_the_tree is a valid .nwk tree.")
-    
+def prune_tree_CPA(name_of_the_tree, root_to_node_ratio=0.1, min_num_of_roots=15, M_n=0, threshold=90, beta=20, radius_ratio = 0, safe_tips=[], show_plot=False, show_pruned_tips=False, name_of_output="cpa_tree.nwk"):
+
+    validate_cpa_arguments(name_of_the_tree,root_to_node_ratio,min_num_of_roots,M_n,threshold,beta,radius_ratio,safe_tips,show_plot,show_pruned_tips,name_of_output)
+
     tree = ete3.Tree(name_of_the_tree, format=1, quoted_node_names=True)
     leaf_names = tree.get_leaf_names()
     num_leaves = len(leaf_names)
@@ -39,7 +39,7 @@ def prune_tree_CPA(name_of_the_tree, root_to_node_ratio=0.1, min_num_of_roots=15
     if M_n == 0:
         M_n_int = num_leaves
     else:
-        M_n_int = M_n(num_leaves)
+        M_n_int = max(int(M_n(num_leaves)),1)
 
     def hang(tree1, root1):
       dists = []
@@ -65,7 +65,8 @@ def prune_tree_CPA(name_of_the_tree, root_to_node_ratio=0.1, min_num_of_roots=15
     best_p_v = float("inf")
     for root in roots:
         data = hang(tree, root)
-        bin_edges = np.linspace(min(data), max(data), M_n_int + 1)
+        original_radius = max(data)
+        bin_edges = np.linspace(min(data), original_radius, M_n_int + 1)
         hist, _ = np.histogram(data, bins=bin_edges)
 
         cumulative_freq = np.cumsum(hist)
@@ -89,6 +90,7 @@ def prune_tree_CPA(name_of_the_tree, root_to_node_ratio=0.1, min_num_of_roots=15
             best_p_v = p_v
             best_root = root
             best_stop = stop
+            best_original_radius = original_radius
 
     if show_plot:
         data = hang(tree, best_root)
@@ -107,29 +109,35 @@ def prune_tree_CPA(name_of_the_tree, root_to_node_ratio=0.1, min_num_of_roots=15
         plt.title("CPA")
         plt.show()
 
-    leaves_to_keep = []
-    leaves_to_prune = []
-    for leaf in tree.iter_leaves():
-        distance_to_node = best_root.get_distance(leaf)
-        if (distance_to_node <= best_p_v) or (leaf.name in safe_tips):
-            leaves_to_keep.append(leaf)
-        else:
-            leaves_to_prune.append(leaf.name)
 
-    tree.prune(leaves_to_keep, preserve_branch_length=True)
+    if (100 - 100*best_p_v/best_original_radius) >= radius_ratio:
+        leaves_to_keep = []
+        leaves_to_prune = []
+        for leaf in tree.iter_leaves():
+            distance_to_node = best_root.get_distance(leaf)
+            if (distance_to_node <= best_p_v) or (leaf.name in safe_tips):
+                leaves_to_keep.append(leaf)
+            else:
+                leaves_to_prune.append(leaf.name)
 
-    tree.write(outfile=name_of_output, format = 1)
-    leaf_names = tree.get_leaf_names()
-    num_leaves = len(leaf_names)
+        tree.prune(leaves_to_keep, preserve_branch_length=True)
+
+        tree.write(outfile=name_of_output, format = 1)
+        leaf_names = tree.get_leaf_names()
+        num_leaves = len(leaf_names)
+
+        if show_pruned_tips:
+            return tree, 100 * num_leaves / original_num_leaves, leaves_to_prune
+        return tree, 100 * num_leaves / original_num_leaves
 
     if show_pruned_tips:
-        return tree, 100 * num_leaves / original_num_leaves, leaves_to_prune
-    return tree, 100 * num_leaves / original_num_leaves
+        return tree, 100, []
+    return tree, 100
 
 
 def prune_tree_IQR(name_of_the_tree, threshold = 90, name_of_output="iqr_tree.nwk"):
-    if not is_valid_tree(name_of_the_tree):
-     raise TypeError("The input file is not a valid phylogenetic tree. Please make sure that name_of_the_tree is a valid .nwk tree.")
+
+    validate_iqr_arguments(name_of_the_tree,threshold,name_of_output)
 
     tree = ete3.Tree(name_of_the_tree, format=1, quoted_node_names=True)
     original_num_leaves = len(tree.get_leaves())
