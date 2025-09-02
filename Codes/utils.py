@@ -144,3 +144,86 @@ def prune_by_root_to_tip(tree, percent_left, original_num_leaves):
                 break
     tree.unroot()
     return tree
+
+def validate_cpa_arguments(name_of_the_tree, root_to_node_ratio, min_num_of_roots, M_n, threshold, beta, radius_ratio, safe_tips, show_plot, show_pruned_tips, name_of_output):
+
+    if not isinstance(name_of_the_tree, str):
+        raise TypeError("`name_of_the_tree` must be a string.")
+    if not is_valid_tree(name_of_the_tree):
+        raise TypeError("`name_of_the_tree` must contain a valid .nwk or .newick tree.")
+
+    if not isinstance(root_to_node_ratio, (int, float)):
+        raise TypeError("`root_to_node_ratio` must be an integer or a float.")
+    if not (0 <= root_to_node_ratio <= 1):
+        raise ValueError("`root_to_node_ratio` is outside the expected [0,1] range.")
+
+    if not isinstance(min_num_of_roots, int):
+        raise TypeError("`min_num_of_roots` must be an integer.")
+    if min_num_of_roots < 1:
+        raise ValueError("`min_num_of_roots` must be at least 1.")
+
+    if M_n != 0 and not callable(M_n):
+        raise TypeError("`M_n` must be a function or 0.")
+
+    if not isinstance(threshold, (int, float)):
+        raise TypeError("`threshold` must be an integer or a float.")
+    if not (0 <= threshold <= 100):
+        raise ValueError("`threshold` is outside the expected [0,100] range.")
+
+    if not isinstance(beta, (int, float)):
+        raise TypeError("`beta` must be an integer or a float.")
+    if not (0 <= beta <= 100):
+        raise ValueError("`beta` is outside the expected [0,100] range.")
+
+    if not isinstance(radius_ratio, (int, float)):
+        raise TypeError("`radius_ratio` must be an integer or a float.")
+    if not (0 <= radius_ratio <= 100):
+        raise ValueError("`radius_ratio` is outside the expected [0,100] range.")
+    
+    if not isinstance(safe_tips, list) or not all(isinstance(tip, str) for tip in safe_tips):
+        raise TypeError("`safe_tips` must be a list of strings.")
+
+    if not isinstance(show_plot, bool):
+        raise TypeError("`show_plot` must be a boolean.")
+
+    if not isinstance(show_pruned_tips, bool):
+        raise TypeError("`show_pruned_tips` must be a boolean.")
+
+    if not isinstance(name_of_output, str):
+        raise TypeError("`name_of_output` must be a string.")
+
+
+def validate_psfa_arguments(name_of_the_tree,threshold,longest_to_average,name_of_output):
+        
+    if not isinstance(name_of_the_tree, str):
+        raise TypeError("`name_of_the_tree` must be a string.")
+    if not is_valid_tree(name_of_the_tree):
+        raise TypeError("`name_of_the_tree` must contain a valid .nwk or .newick tree.")
+
+    if not isinstance(threshold, (int, float)):
+        raise TypeError("`threshold` must be an integer or a float.")
+    if not (0 <= threshold <= 100):
+        raise ValueError("`threshold` is outside the expected [0,100] range.")
+
+    if not isinstance(longest_to_average, (int,float)):
+        raise TypeError("`longest_to_average` must be an integer or a float.")
+    if longest_to_average < 0:
+        raise ValueError("`longest_to_average` must be at least 0.")
+    
+    if not isinstance(name_of_output, str):
+        raise TypeError("`name_of_output` must be a string.")
+
+def validate_iqr_arguments(name_of_the_tree,threshold,name_of_output):
+
+    if not isinstance(name_of_the_tree, str):
+        raise TypeError("`name_of_the_tree` must be a string.")
+    if not is_valid_tree(name_of_the_tree):
+        raise TypeError("`name_of_the_tree` must contain a valid .nwk or .newick tree.")
+
+    if not isinstance(threshold, (int, float)):
+        raise TypeError("`threshold` must be an integer or a float.")
+    if not (0 <= threshold <= 100):
+        raise ValueError("`threshold` is outside the expected [0,100] range.")
+
+    if not isinstance(name_of_output, str):
+        raise TypeError("`name_of_output` must be a string.")
