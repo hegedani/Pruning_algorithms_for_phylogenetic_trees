@@ -76,6 +76,8 @@ from treepruner import prune_tree_PSFA, prune_tree_CPA, prune_tree_IQR
         - `threshold` (float, default=90): the same as above.
 
         - `beta` (float, default=25): determines where to prune the tree. After placing the leaves in the brackets, the first couple of brackets will be safe, until the total number of leaves in them reaches `alpha*num_leaves`. When the CPA finds this threshold, it is ready for pruning. The algorithm will start the pruning if a bracket contains `beta` percent less leaves than the previous one. After this point the CPA will delete every leaf.
+     
+        - `radius_ratio` (float, default=0): controls whether pruning occurs based on the tree's radius. If the longest root-to-tip distance in the pruned tree is not at least `radius_ratio` percent smaller than in the original tree (measured from the same root), no pruning is performed.
 
         - `safe_tips` (list, default=[]): a list where you can input the names of the tips that you do not want to be cut off. After the algorithm chose the best root and started the pruning, it checks which leaves are in the list and leaves them on the tree. The default value means that there are no safe leaves. It is important that the names in the list must be strings.
 
