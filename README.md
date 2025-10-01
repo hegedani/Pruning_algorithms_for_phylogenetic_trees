@@ -25,7 +25,7 @@ The script possible works with other versions of these packages, too.
 
 ## Standalone version
 
-    treepruner.py
+    bin/treepruner.py
 
 ## In a singularity container
 
