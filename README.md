@@ -16,18 +16,24 @@ Phylogenetic trees describe evolutionary relationships among taxa based on genet
 
 ## Prerequisites:
 
-python3 (3.12) with packages: ete3 (3.1.3), numpy (2.3.3), matplotlib (3.10.6)
+`python3.12` with packages:
+  - `ete3` (3.1.3)
+  - `numpy` (2.3.3)
+  - `matplotlib` (3.10.6)
 
 The script possible works with other versions of these packages, too.
 
 ## Standalone version
 
-treepruner.py
+    treepruner.py
 
 ## In a singularity container
 
-  1. download singularity image: singularity pull -F mesti90-treepruner.1.1.sif docker://mesti90/treepruner:1.1
-  2. singularity exec mesti90-treepruner.1.1.sif treepruner @args
+  1. download singularity image from docker: https://hub.docker.com/r/mesti90/treepruner/
+     
+       singularity pull -F mesti90-treepruner.1.1.sif docker://mesti90/treepruner:1.1
+     
+  3. ```singularity exec mesti90-treepruner.1.1.sif treepruner @args```
 
 ## CLI arguments
 
