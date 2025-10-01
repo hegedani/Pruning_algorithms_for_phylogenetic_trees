@@ -12,8 +12,80 @@ Phylogenetic trees describe evolutionary relationships among taxa based on genet
 
 - To simplify analysis by focusing on reliable data.
 
-## How to use the package
-After installing the package use one of the following imports: <br>
+# How to use the package
+
+## Prerequisites:
+
+python3 (3.12) with packages: ete3 (3.1.3), numpy (2.3.3), matplotlib (3.10.6)
+
+The script possible works with other versions of these packages, too.
+
+## Standalone version
+
+treepruner.py
+
+## In a singularity container
+
+  1. download singularity image: singularity pull -F mesti90-treepruner.1.1.sif docker://mesti90/treepruner:1.1
+  2. singularity exec mesti90-treepruner.1.1.sif treepruner @args
+
+## CLI arguments
+
+	treepruner.py [-h] -i INPUT_TREE [-o OUTPUT_TREE] [--stats-file STATS_FILE]
+						 [-m {PSFA,CPA,IQR} [{PSFA,CPA,IQR} ...]] [--log LOG] [--output_dir OUTPUT_DIR]
+						 [--psfa-output PSFA_OUTPUT] [--psfa-threshold PSFA_THRESHOLD]
+						 [--psfa-longest-to-average PSFA_LONGEST_TO_AVERAGE] [--cpa-output CPA_OUTPUT]
+						 [--cpa-threshold CPA_THRESHOLD] [--cpa-root-to-node-ratio CPA_ROOT_TO_NODE_RATIO]
+						 [--cpa-min-num-of-roots CPA_MIN_NUM_OF_ROOTS] [--cpa-M-n CPA_M_N]
+						 [--cpa-beta CPA_BETA] [--cpa-radius-ratio CPA_RADIUS_RATIO]
+						 [--cpa-safe-tips [CPA_SAFE_TIPS [CPA_SAFE_TIPS ...]]] [--cpa-show-plot]
+						 [--cpa-show-pruned-tips] [--iqr-output IQR_OUTPUT]
+						 [--iqr-threshold IQR_THRESHOLD]
+
+	Prune trees using one or more methods:
+		  CPA  - Circular Pruning Algorithm
+		  IQR  - Interquartile Range approach
+		  PSFA - Primitive Straight-Forward approach
+
+	optional arguments:
+	  -h, --help            show this help message and exit
+	  -i INPUT_TREE, --input-tree INPUT_TREE
+							One or more input tree files (Newick format) (default: None)
+	  -o OUTPUT_TREE, --output-tree OUTPUT_TREE
+							Output tree file name. Final output will be: <output_dir>/<output_tree> (default: output_tree.nwk)
+	  --stats-file STATS_FILE
+							Filename for CSV summary of pruning stats (saved in --output_dir) (default: pruning_summary.csv)
+	  -m {PSFA,CPA,IQR} [{PSFA,CPA,IQR} ...], --methods {PSFA,CPA,IQR} [{PSFA,CPA,IQR} ...]
+							List of methods to apply (space-separated, e.g., 'CPA IQR PSFA') (default: ['PSFA', 'CPA'])
+	  --log LOG             Log file path (default: treepruner.log)
+	  --output_dir OUTPUT_DIR
+							Directory to save all output trees and reports (default: results)
+
+	PSFA options:
+	  --psfa-output PSFA_OUTPUT
+	  --psfa-threshold PSFA_THRESHOLD
+	  --psfa-longest-to-average PSFA_LONGEST_TO_AVERAGE
+
+	CPA options:
+	  --cpa-output CPA_OUTPUT
+	  --cpa-threshold CPA_THRESHOLD
+	  --cpa-root-to-node-ratio CPA_ROOT_TO_NODE_RATIO
+	  --cpa-min-num-of-roots CPA_MIN_NUM_OF_ROOTS
+	  --cpa-M-n CPA_M_N
+	  --cpa-beta CPA_BETA
+	  --cpa-radius-ratio CPA_RADIUS_RATIO
+	  --cpa-safe-tips [CPA_SAFE_TIPS [CPA_SAFE_TIPS ...]]
+	  --cpa-show-plot
+	  --cpa-show-pruned-tips
+
+	IQR options:
+	  --iqr-output IQR_OUTPUT
+	  --iqr-threshold IQR_THRESHOLD
+
+
+## As a package
+
+Install from pypi
 
 ```python
 import treepruner 
