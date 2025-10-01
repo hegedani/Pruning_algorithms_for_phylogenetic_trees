@@ -15,6 +15,8 @@ from typing import List, get_origin, Optional
 import datetime
 import logging
 import csv
+import pdb
+import shutil
 
 # =============
 # Dataclasses for configuration
@@ -216,8 +218,8 @@ def parse_args():
 		help="One or more input tree files (Newick format)"
 	)
 	parser.add_argument(
-		"-o", "--output-tree",
-		default="output_tree.nwk",
+		"-o", "--final-output-tree",
+		default="pruned_tree.nwk",
 		help="Output tree file name. Final output will be: <output_dir>/<output_tree>"
 	)
 	parser.add_argument(
@@ -232,7 +234,7 @@ def parse_args():
 		help="List of methods to apply (space-separated, e.g., 'CPA IQR PSFA')"
 	)
 	parser.add_argument("--log", default="treepruner.log", help="Log file path")
-	parser.add_argument("--output_dir", default="results", help="Directory to save all output trees and reports")
+	parser.add_argument("--output_dir", default=".", help="Directory to save all output trees and reports")
 
 	# Add method-specific arguments
 	for cfg_class, prefix in [(PSFAConfig, "psfa"), (CPAConfig, "cpa"), (IQRConfig, "iqr")]:
@@ -475,8 +477,6 @@ def _prune_tree_PSFA(config):
 		)
 		if not PRUNE:
 			break
-
-	tree.write(outfile=config.output, format=1)
 	num_leaves = len(tree.get_leaves())
 	return tree, 100 * num_leaves / original_num_leaves
 
@@ -561,7 +561,6 @@ def _prune_tree_CPA(config):
 				leaves_to_prune.append(leaf.name)
 
 		tree.prune(leaves_to_keep, preserve_branch_length=True)
-		tree.write(outfile=config.output, format=1)
 		num_leaves = len(tree.get_leaves())
 		return tree, 100 * num_leaves / original_num_leaves, leaves_to_prune
 
@@ -576,11 +575,6 @@ def _prune_tree_IQR(config):
 	num_leaves = len(tree_2.get_leaves())
 	if num_leaves:
 		tree_2.standardize()
-		tree_2.write(outfile=config.output, format=1)
-	else:
-		logging.warning(f"All leaves pruned in IQR for tree {config.input_tree}. Writing empty tree.")
-		with open(config.output, "w") as f:
-			f.write(";")  # empty Newick tree
 	return tree_2, 100 * num_leaves / original_num_leaves
 
 
@@ -688,13 +682,12 @@ def run_method_with_stats(method_name, config):
 		outtree, percent_remaining = _prune_tree_IQR(config)
 	else:
 		raise RuntimeError(f"Unknown method: {method_name}")
-
 	outtree.write(outfile=config.output, format=1)
 	return outtree, percent_remaining, pruned_tips
 
 
 
-def collect_stats(tree_file, methods, configs):
+def run_pruning_methods(tree_file, out_tree_file, methods, configs):
 	"""
 	Run each method sequentially and collect stats.
 	Returns a list of dicts with method stats.
@@ -707,14 +700,10 @@ def collect_stats(tree_file, methods, configs):
 	for method in methods:
 		cfg = configs[method]
 		cfg.input_tree = prev_file
-
-		# generate output path if not already set
-		if not cfg.output:
-			cfg.output = make_output_path(prev_file, method, "results")
-
+		
 		# Run method
 		tree_out, percent_left, pruned_tips = run_method_with_stats(method, cfg)
-
+		
 		stats.append({
 		 "method": method,
 		 "output": cfg.output,
@@ -724,7 +713,9 @@ def collect_stats(tree_file, methods, configs):
 		})
 
 		prev_file = cfg.output
-
+	
+	shutil.copy(cfg.output, out_tree_file)
+	
 	return original_leaves, stats
 
 
@@ -755,10 +746,10 @@ def save_stats_csv(stats, original_leaves, output_path):
 def main():
 	"""Main entry point for CLI."""
 	args = parse_args()
-	args.output_tree = os.path.join(args.output_dir, args.output_tree)
+	args.final_output_tree = os.path.join(args.output_dir, args.final_output_tree)
 	stats_path = os.path.join(args.output_dir, args.stats_file)
 	init_logging(logfile=args.log)
-	logging.info(f"Resolved output tree path: {args.output_tree}")
+	logging.info(f"Resolved output tree path: {args.final_output_tree}")
 	methods = args.methods
 	configs = {
 		"PSFA": build_config(PSFAConfig, "psfa", args),
@@ -770,12 +761,12 @@ def main():
 	try:
 		msg("Validating input file and config")
 		check_input_file(args.input_tree)
-		ensure_output_path(args.output_tree)
+		ensure_output_path(args.final_output_tree)
 		validate_configs(configs, methods)
 		msg("Start pruning pipeline")
-		original_leaves, stats = collect_stats(args.input_tree, methods, configs)
+		original_leaves, stats = run_pruning_methods(args.input_tree, args.final_output_tree, methods, configs)
 		save_stats_csv(stats, original_leaves, stats_path)
-		msg(f"Pruning completed successfully. Output saved to {args.output_tree}")
+		msg(f"Pruning completed successfully. Output saved to {args.final_output_tree}")
 	except Exception as e:
 		# Print only error type and message in red
 		tb = e.__traceback__
