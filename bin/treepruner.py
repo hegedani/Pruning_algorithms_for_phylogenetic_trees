@@ -759,24 +759,24 @@ def main():
 	}
 	
 	
-	#try:
-	msg("Validating input file and config")
-	check_input_file(args.input_tree)
-	ensure_output_path(args.final_output_tree)
-	validate_configs(configs, methods)
-	msg("Start pruning pipeline")
-	original_leaves, stats = run_pruning_methods(args.input_tree, args.final_output_tree, methods, configs)
-	save_stats_csv(stats, original_leaves, stats_path)
-	msg(f"Pruning completed successfully. Output saved to {args.final_output_tree}")
-	#except Exception as e:
-	#	# Print only error type and message in red
-	#	tb = e.__traceback__
-	#	while tb.tb_next:
-	#		tb = tb.tb_next
-	#	line_no = tb.tb_lineno
-	#	# Print only error type, message, and line number in red
-	#	logging.error(f"\033[91m[{type(e).__name__}]: line {line_no}: {e}\033[0m", file=sys.stderr)
-	#	sys.exit(1)
+	try:
+		msg("Validating input file and config")
+		check_input_file(args.input_tree)
+		ensure_output_path(args.final_output_tree)
+		validate_configs(configs, methods)
+		msg("Start pruning pipeline")
+		original_leaves, stats = run_pruning_methods(args.input_tree, args.final_output_tree, methods, configs)
+		save_stats_csv(stats, original_leaves, stats_path)
+		msg(f"Pruning completed successfully. Output saved to {args.final_output_tree}")
+	except Exception as e:
+		# Print only error type and message in red
+		tb = e.__traceback__
+		while tb.tb_next:
+			tb = tb.tb_next
+		line_no = tb.tb_lineno
+		# Print only error type, message, and line number in red
+		logging.error(f"\033[91m[{type(e).__name__}]: line {line_no}: {e}\033[0m", file=sys.stderr)
+		sys.exit(1)
 
 
 
