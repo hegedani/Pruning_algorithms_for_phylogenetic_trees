@@ -469,13 +469,14 @@ def _prune_tree_PSFA(config):
 	percent_left = 100 - config.threshold
 
 	while percent_left > 0:
+		orig_percent_left = percent_left
 		tree, PRUNE, percent_left = one_primitive_step(
 			tree,
 			original_num_leaves,
 			percent_left,
 			config.longest_to_average
 		)
-		if not PRUNE:
+		if not PRUNE or percent_left == orig_percent_left:
 			break
 	num_leaves = len(tree.get_leaves())
 	return tree, 100 * num_leaves / original_num_leaves
@@ -673,7 +674,6 @@ def run_method_with_stats(method_name, config):
 	"""
 	tree = ete3.Tree(config.input_tree, format=1, quoted_node_names=True)
 	pruned_tips = []
-
 	if method_name == "PSFA":
 		outtree, percent_remaining = _prune_tree_PSFA(config)
 	elif method_name == "CPA":
@@ -699,6 +699,7 @@ def run_pruning_methods(tree_file, out_tree_file, methods, configs):
 
 	for method in methods:
 		cfg = configs[method]
+		logging.info(f"Running {method}")
 		cfg.input_tree = prev_file
 		
 		# Run method
@@ -758,24 +759,24 @@ def main():
 	}
 	
 	
-	try:
-		msg("Validating input file and config")
-		check_input_file(args.input_tree)
-		ensure_output_path(args.final_output_tree)
-		validate_configs(configs, methods)
-		msg("Start pruning pipeline")
-		original_leaves, stats = run_pruning_methods(args.input_tree, args.final_output_tree, methods, configs)
-		save_stats_csv(stats, original_leaves, stats_path)
-		msg(f"Pruning completed successfully. Output saved to {args.final_output_tree}")
-	except Exception as e:
-		# Print only error type and message in red
-		tb = e.__traceback__
-		while tb.tb_next:
-			tb = tb.tb_next
-		line_no = tb.tb_lineno
-		# Print only error type, message, and line number in red
-		logging.error(f"\033[91m[{type(e).__name__}]: line {line_no}: {e}\033[0m", file=sys.stderr)
-		sys.exit(1)
+	#try:
+	msg("Validating input file and config")
+	check_input_file(args.input_tree)
+	ensure_output_path(args.final_output_tree)
+	validate_configs(configs, methods)
+	msg("Start pruning pipeline")
+	original_leaves, stats = run_pruning_methods(args.input_tree, args.final_output_tree, methods, configs)
+	save_stats_csv(stats, original_leaves, stats_path)
+	msg(f"Pruning completed successfully. Output saved to {args.final_output_tree}")
+	#except Exception as e:
+	#	# Print only error type and message in red
+	#	tb = e.__traceback__
+	#	while tb.tb_next:
+	#		tb = tb.tb_next
+	#	line_no = tb.tb_lineno
+	#	# Print only error type, message, and line number in red
+	#	logging.error(f"\033[91m[{type(e).__name__}]: line {line_no}: {e}\033[0m", file=sys.stderr)
+	#	sys.exit(1)
 
 
 
