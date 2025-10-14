@@ -21,7 +21,7 @@ Phylogenetic trees describe evolutionary relationships among taxa based on genet
   - `numpy` (2.3.3)
   - `matplotlib` (3.10.6)
 
-The script possible works with other versions of these packages, too.
+The script possibly works with other versions of these packages, too.
 
 ## Standalone version
 
