@@ -7,9 +7,7 @@ Phylogenetic trees describe evolutionary relationships among taxa based on genet
 ### Why prune phylogenetic trees?
 
 - To remove erroneous taxa that might skew evolutionary insights.
-
 - To ensure the tree represents biological reality more accurately.
-
 - To simplify analysis by focusing on reliable data.
 
 # How to use the package
@@ -29,65 +27,55 @@ The script possibly works with other versions of these packages, too.
 
 ## In a singularity container
 
-  1. download singularity image from docker: https://hub.docker.com/r/mesti90/treepruner/
+  1. Download singularity image from docker: https://hub.docker.com/r/mesti90/treepruner/
      
-       singularity pull -F mesti90-treepruner.1.1.sif docker://mesti90/treepruner:1.1
+       `singularity pull -F mesti90-treepruner.1.1.sif docker://mesti90/treepruner:1.1`
      
-  3. ```singularity exec mesti90-treepruner.1.1.sif treepruner @args```
+  2. `singularity exec mesti90-treepruner.1.1.sif treepruner @args`
 
 ## CLI arguments
 
 	treepruner.py [-h] -i INPUT_TREE [-o OUTPUT_TREE] [--stats-file STATS_FILE]
-						 [-m {PSFA,CPA,IQR} [{PSFA,CPA,IQR} ...]] [--log LOG] [--output_dir OUTPUT_DIR]
-						 [--psfa-output PSFA_OUTPUT] [--psfa-threshold PSFA_THRESHOLD]
-						 [--psfa-longest-to-average PSFA_LONGEST_TO_AVERAGE] [--cpa-output CPA_OUTPUT]
-						 [--cpa-threshold CPA_THRESHOLD] [--cpa-root-to-node-ratio CPA_ROOT_TO_NODE_RATIO]
-						 [--cpa-min-num-of-roots CPA_MIN_NUM_OF_ROOTS] [--cpa-M-n CPA_M_N]
-						 [--cpa-beta CPA_BETA] [--cpa-radius-ratio CPA_RADIUS_RATIO]
-						 [--cpa-safe-tips [CPA_SAFE_TIPS [CPA_SAFE_TIPS ...]]] [--cpa-show-plot]
-						 [--cpa-show-pruned-tips] [--iqr-output IQR_OUTPUT]
-						 [--iqr-threshold IQR_THRESHOLD]
+             [-m {PSFA,CPA,IQR,PSFA_CPA_PSFA} [{PSFA,CPA,IQR,PSFA_CPA_PSFA} ...]] [--log LOG] [--output_dir OUTPUT_DIR]
+             [--psfa-output PSFA_OUTPUT] [--psfa-threshold PSFA_THRESHOLD]
+             [--psfa-longest-to-average PSFA_LONGEST_TO_AVERAGE] [--cpa-output CPA_OUTPUT]
+             [--cpa-threshold CPA_THRESHOLD] [--cpa-root-to-node-ratio CPA_ROOT_TO_NODE_RATIO]
+             [--cpa-min-num-of-roots CPA_MIN_NUM_OF_ROOTS] [--cpa-M-n CPA_M_N]
+             [--cpa-beta CPA_BETA] [--cpa-radius-ratio CPA_RADIUS_RATIO]
+             [--cpa-safe-tips [CPA_SAFE_TIPS [CPA_SAFE_TIPS ...]]] [--cpa-show-plot]
+             [--cpa-show-pruned-tips] [--iqr-output IQR_OUTPUT]
+             [--iqr-threshold IQR_THRESHOLD] [--psfacpa-psfa1-threshold PSFACPA_PSFA1_THRESHOLD]
+             [--psfacpa-cpa-threshold PSFACPA_CPA_THRESHOLD] [--psfacpa-psfa2-threshold PSFACPA_PSFA2_THRESHOLD]
+             [--psfacpa-longest-to-average PSFACPA_LONGEST_TO_AVERAGE]
+             [--psfacpa-root-to-node-ratio PSFACPA_ROOT_TO_NODE_RATIO]
+             [--psfacpa-min-num-of-roots PSFACPA_MIN_NUM_OF_ROOTS] [--psfacpa-M-n PSFACPA_M_N]
+             [--psfacpa-beta PSFACPA_BETA] [--psfacpa-radius-ratio PSFACPA_RADIUS_RATIO]
+             [--psfacpa-safe-tips [PSFACPA_SAFE_TIPS [PSFACPA_SAFE_TIPS ...]]]
+             [--psfacpa-show-plot]
 
 	Prune trees using one or more methods:
-		  CPA  - Circular Pruning Algorithm
-		  IQR  - Interquartile Range approach
-		  PSFA - Primitive Straight-Forward approach
+      CPA           - Circular Pruning Algorithm
+      IQR           - Interquartile Range approach
+      PSFA          - Primitive Straight-Forward approach
+      PSFA_CPA_PSFA - Sequential pruning (PSFA -> CPA -> PSFA)
 
 	optional arguments:
-	  -h, --help            show this help message and exit
-	  -i INPUT_TREE, --input-tree INPUT_TREE
-							One or more input tree files (Newick format) (default: None)
-	  -o OUTPUT_TREE, --output-tree OUTPUT_TREE
-							Output tree file name. Final output will be: <output_dir>/<output_tree> (default: output_tree.nwk)
-	  --stats-file STATS_FILE
-							Filename for CSV summary of pruning stats (saved in --output_dir) (default: pruning_summary.csv)
-	  -m {PSFA,CPA,IQR} [{PSFA,CPA,IQR} ...], --methods {PSFA,CPA,IQR} [{PSFA,CPA,IQR} ...]
-							List of methods to apply (space-separated, e.g., 'CPA IQR PSFA') (default: ['PSFA', 'CPA'])
-	  --log LOG             Log file path (default: treepruner.log)
-	  --output_dir OUTPUT_DIR
-							Directory to save all output trees and reports (default: results)
+	    -h, --help            show this help message and exit
+	    -i INPUT_TREE, --input-tree INPUT_TREE
+	              One or more input tree files (Newick format) (default: None)
+	    -o OUTPUT_TREE, --output-tree OUTPUT_TREE
+	              Output tree file name. Final output will be: <output_dir>/<output_tree> (default: pruned_tree.nwk)
+	    --stats-file STATS_FILE
+	              Filename for CSV summary of pruning stats (saved in --output_dir) (default: pruning_summary.csv)
+	    -m {PSFA,CPA,IQR,PSFA_CPA_PSFA} [{PSFA,CPA,IQR,PSFA_CPA_PSFA} ...], --methods ...
+	              List of methods to apply (space-separated, e.g., 'CPA IQR PSFA_CPA_PSFA') (default: ['PSFA', 'CPA'])
+	    --log LOG             Log file path (default: treepruner.log)
+	    --output_dir OUTPUT_DIR
+	              Directory to save all output trees and reports (default: .)
 
-	PSFA options:
-	  --psfa-output PSFA_OUTPUT
-	  --psfa-threshold PSFA_THRESHOLD
-	  --psfa-longest-to-average PSFA_LONGEST_TO_AVERAGE
 
-	CPA options:
-	  --cpa-output CPA_OUTPUT
-	  --cpa-threshold CPA_THRESHOLD
-	  --cpa-root-to-node-ratio CPA_ROOT_TO_NODE_RATIO
-	  --cpa-min-num-of-roots CPA_MIN_NUM_OF_ROOTS
-	  --cpa-M-n CPA_M_N
-	  --cpa-beta CPA_BETA
-	  --cpa-radius-ratio CPA_RADIUS_RATIO
-	  --cpa-safe-tips [CPA_SAFE_TIPS [CPA_SAFE_TIPS ...]]
-	  --cpa-show-plot
-	  --cpa-show-pruned-tips
 
-	IQR options:
-	  --iqr-output IQR_OUTPUT
-	  --iqr-threshold IQR_THRESHOLD
-
+*(Method-specific CLI options correspond directly to the python arguments documented below.)*
 
 ## As a package
 
@@ -96,126 +84,124 @@ Install from pypi
 ```python
 import treepruner 
 #or
-from treepruner import prune_tree_PSFA, prune_tree_CPA, prune_tree_IQR
+from treepruner import prune_tree_PSFA, prune_tree_CPA, prune_tree_IQR, prune_tree_PSFA_CPA_PSFA
 ```
 
 ## The following algorithms can be used to prune exceptionally long branches in phylogenetic trees. 
 
 - **Primitive Straight-Forward Approach (PSFA)**
-    - Identifies the longest edge and calculates the sizes of the two components resulting from its removal.
-
-    - If the size of the smaller component is within the tolerance range and the edge was excessively long, removes it.
-    
-    - You have to define criteria for considering an edge as "excessively long".
-
-    - You also have to specify the tolerance range.
-
-    - You can call this function by `treepruner.prune_tree_PSFA`. The function's output consists of two parts. The first part is the pruned tree in `ete3.Tree` format, while the second part is a number indicating the percentage of leaves that remain in the tree after pruning.
-
-    - The function has four arguments in the following order:
-        
-        - `name_of_the_tree` (str): the name of your tree file, which should be in the same folder as your code. For example `name_of_the_tree = ST2332.nwk`. This argument must be a valid phylogenetic tree, but it can be .nwk, .newick or .tree format.
-
-        - `threshold` (float, default=90): the minimum percentage of the leaves that the algorithm must keep.
-
-        - `longest_to_average` (float, default=9): determines how many times longer should a branch be than the average, to consider it too long.
-
-        - `name_of_output` (str, default="psfa_tree.nwk"): the desired name of the output file, which will be saved into the same folder as the input file. You can also set this to .newick, if you prefer that format.
+	- Identifies the longest edge and calculates the sizes of the two components resulting from its removal.
+	- If the size of the smaller component is within the tolerance range and the edge was excessively long, removes it.
+	- You have to define criteria for considering an edge as "excessively long".
+	- You also have to specify the tolerance range.
+	- You can call this function via `treepruner.prune_tree_PSFA`. The function directly returns a `float` indicating the percentage of leaves that remain in the tree after pruning, and automatically saves the pruned tree to your disk.
+	- **Arguments:**
+		- `name_of_the_tree` (str): the name of your tree file. This argument must be a valid phylogenetic tree (.nwk, .newick or .tree format).
+		- `threshold` (int, default=90): the minimum percentage of the leaves that the algorithm must keep.
+		- `longest_to_average` (int, default=9): determines how many times longer should a branch be than the average, to consider it too long.
+		- `name_of_output` (str, default="psfa_tree.nwk"): the desired name of the output file.
+		- `save_output` (bool, default=True): If set to `True`, the pruned tree will be saved to your disk using `name_of_output`. Set to `False` to only return the statistics.
 
 - **Circular Pruning Algorithm (CPA)**
     - This is a more complex and (most of the time) better algorithm than the previous one, but the runtime is also longer.
+	- The goal is to prune the trees to make them roughly circular.
+	- Chooses a "root" and removes leaves that are beyond a specified distance.
+	- Two conditions must be satisfied:
+		- Do not remove too many leaves.
+		- It should not be possible to significantly reduce the radius by removing only a few nodes.
+	- Randomly selects some roots and prunes to meet both conditions.
+	- Among all the pruned trees, picks the best one.
+	- You can call this function via `treepruner.prune_tree_CPA`. The function returns a tuple of two values: `(percentage_remaining (float), pruned_tips (list))`, and automatically saves the pruned tree to your disk.
+	- **Arguments:**
+		- `name_of_the_tree` (str): the same as above.
+		- `root_to_node_ratio` (float, default=0.1): determines how many nodes does the algorithm try out as "roots". By increasing this parameter, the precision and the runtime becomes greater too. Must be between 0 and 1.
+		- `min_num_of_roots` (int, default=15): the minimum number of nodes that the algorithm tries out as "roots".
+		- `M_n` (int or callable, default=0): Determines the number of distance brackets the leaves are placed into. If a function is provided, the total number of brackets will be `M_n(num_leaves)`. If an integer is provided, it acts as a hard limit on the number of brackets. The default value (0) sets the number of brackets equal to the number of leaves.
+		- `threshold` (int, default=90): the same as above.
+		- `beta` (float, default=20): determines where to prune the tree based on leaf distribution density. 
+		- `radius_ratio` (float, default=0): controls whether pruning occurs based on the tree's radius reduction.
+		- `safe_tips` (list, default=[]): a list of tip names (strings) that you do not want to be cut off under any circumstances.
+		- `show_plot` (bool, default=False): if `True`, displays a histogram showing the leaf brackets, distances, and indicating which brackets have been deleted (in red).
+		- `show_pruned_tips` (bool, default=False): *(Deprecated parameter kept for legacy configs; the function now always returns the pruned tips list).*
+		- `name_of_output` (str, default="cpa_tree.nwk"): the same as above.
+		- `save_output` (bool, default=True): the same as above.
 
-    - The goal is to prune the trees to make them roughly circular.
-
-    - Chooses a "root" and removes leaves that are beyond a specified distance.
-
-    - Two conditions must be satisfied:
-    
-      - Do not remove too many leaves.
-        
-      - It should not be possible to significantly reduce the radius by removing only a few nodes.
-
-    - Randomly selects some roots and prunes to meet both conditions.
-
-    - Among all the pruned trees, picks the best one.
-
-    - You can call this function by `treepruner.prune_tree_CPA`. The function's output is the same as above.
-
-    - The function has ten arguments in the following order:
-
-        - `name_of_the_tree` (str): the same as above.
-
-        - `root_to_node_ratio` (float, default=0.1): determines how many nodes does the algorithm try out as "roots". By increasing this parameter, the precision and the runtime becomes greater too. The default value means that the algorithm will try out a randomly selected 10% of the non-leaf nodes as "roots". Apart from these random nodes the algorithm will always try the "midpoint root" of the tree, as it usually gives a good result. The parameter must be between 0 and 1, although the algorithm can handle the other cases as well (as long as it is a number).
-
-        - `min_num_of_roots` (int, default=15): the minimum number of nodes that the algorithm tries out as "roots". This parameter only matters if the `root_to_node_ratio` chooses less nodes than `min_num_of_roots`. It must be less than the number of non-leaf nodes, although the algorithm can handle the other cases as well (as long as it is an integer).
-
-        - `M_n` (function, default=0): a function, which you should define before calling the algorithm if you intend to use this parameter. During the CPA the leaves are being placed in brackets based on their distances from the "root". The algorithm will delete the leaves in the last couple of brackets if certain conditions are met. `M_n` determines the number of brackets: the total number of brackets will be `M_n(num_leaves)`, where `num_leaves` is the number of leaves on the tree. The default value means that the user did not give any function to the argument. In this case `M_n(num_leaves) = num_leaves`. Assigning anything to `M_n`other than a function will result in an error message.
-
-        - `threshold` (float, default=90): the same as above.
-
-        - `beta` (float, default=25): determines where to prune the tree. After placing the leaves in the brackets, the first couple of brackets will be safe, until the total number of leaves in them reaches `alpha*num_leaves`. When the CPA finds this threshold, it is ready for pruning. The algorithm will start the pruning if a bracket contains `beta` percent less leaves than the previous one. After this point the CPA will delete every leaf.
-     
-        - `radius_ratio` (float, default=0): controls whether pruning occurs based on the tree's radius. If the longest root-to-tip distance in the pruned tree is not at least `radius_ratio` percent smaller than in the original tree (measured from the same root), no pruning is performed.
-
-        - `safe_tips` (list, default=[]): a list where you can input the names of the tips that you do not want to be cut off. After the algorithm chose the best root and started the pruning, it checks which leaves are in the list and leaves them on the tree. The default value means that there are no safe leaves. It is important that the names in the list must be strings.
-
-        - `show_plot` (bool, default=False): the default value means that after running the code it will not show any plot. By setting this value to `True`, the brackets will be shown to the user. These brackets correspond to the "best root" (the center of the outscribed circle of the tree). On the x axis you can see the distances from the root, while on the y axis you can see how many leaves were placed in each bracket. Blue indicates the preserved brackets, while red indicates the ones which have been deleted.
-
-        - `show_pruned_tips` (bool, default=False): responsible for indicating which leaves have been cut from the tree. By setting this value to `True`, the function will return a list that contains the names of the pruned tips, in addition to the default return values. This list will be the third return value.
-
-        - `name_of_output` (str, default="cpa_tree.nwk"): the same as above.
 
 - **IQR algorithm**
-  - Abbreviations:
+	- **Abbreviations:**
+		- IQR: the upper fence of the Inter Quartile Range of a vector: Q3 + 3 * (Q3 - Q1) = extreme outlier threshold.
+		- R2T: root-to-tip distance on a midpoint rooted tree.
+	- **Part 1:** Pruning the unrooted tree based on the upper fence of IQR branch lengths.
+	- **Part 2:** Pruning the midpoint rooted tree based on root-to-tip distances. Iteratively midpoint roots the tree and excludes the greatest extreme outlier until no more outliers are found.
+	- You can call this function via `treepruner.prune_tree_IQR`. It returns a `float` indicating the percentage of leaves that remain, and automatically saves the pruned tree to your disk.
+	- **Arguments:**
+		- `name_of_the_tree` (str): the same as above.
+		- `threshold` (int, default=90): the same as above.
+		- `name_of_output` (str, default="iqr_tree.nwk"): the same as above.
+		- `save_output` (bool, default=True): the same as above.
 
-    - IQR: the upper fence of the Inter Quartile Range of a vector: Q3 + 3 \* (Q3 - Q1) = extreme outlier threshold.
 
-    - R2T: root-to-tip distance on a midpoint rooted tree.
+- **Sequential Pruning (PSFA -> CPA -> PSFA)**
+	- A specialized combination method that links the three algorithms into a powerful sequential pipeline to deeply clean noisy data.
+	- The three threshold arguments dictate the **maximum cumulative percentage of the ORIGINAL tree** that may be removed after each respective stage.
+	- You can call this function via `treepruner.prune_tree_PSFA_CPA_PSFA`. It returns a `float` indicating the percentage of leaves remaining in the final tree.
+	- **Arguments:**
+		- `name_of_the_tree` (str): the same as above.
+		- `psfa1_threshold` (int, default=5): max percentage of original tree allowed to be pruned after Step 1.
+		- `cpa_threshold` (int, default=10): max percentage of original tree allowed to be pruned after Step 2.
+		- `psfa2_threshold` (int, default=15): max percentage of original tree allowed to be pruned after Step 3.
+		- *(It also accepts all configuration parameters from PSFA and CPA, such as `longest_to_average`, `M_n`, `beta`, `safe_tips`, etc.)*
+		- `name_of_output` (str, default="psfa_cpa_psfa_tree.nwk"): the same as above.
+		- `save_output` (bool, default=True): the same as above.
 
-  - First part of the algorithm: Pruning the unrooted tree based on the upper fence of IQR branch lengths.
-
-    - Calculating the minimum number of tips for each branch (unrooted bifurcating tree, both directions are looked up, than the least tip number is chosen to represent the branch).
-
-    - Calculating the IQR for branch lengths.
-
-    - Excluding those extreme outlier branches containing less than 0.05 (or a given) proportion of the tips.
-
-  - Second part of the algorithm: Pruning the midpoint rooted tree based on root-to-tip distances. Excluding tips based on the R2T IQRs, while iteratively midpoint rooting and excluding the top greatest extreme outlier.
-
-    - Midpoint rooting the tree (after pruning with method described in the first part).
-
-    - Calculating the IQR for root-to-tip distances.
-
-    - Excluding the most extreme outlier tip based on the IQR for root-to-tip distances.
-
-    - Repeating the previous three steps until there are no more extreme outlier IQR tip is found.
-
-    - Unrooting the pruned tree. 
-
-  - You can call this function by `treepruner.prune_tree_IQR`. The function's output is the same as above.
-
-  - The function has three arguments in the following order:
-
-    - `name_of_the_tree` (str): the same as above.
-
-    - `threshold` (float, default=90): the same as above.
-
-    - `name_of_output` (str, default="iqr_tree.nwk"): the same as above.
 
 ## Example usage
-The code below shows a combination of our algorithms. In some cases, these combinations provide better results, but be careful when experimenting with them.
+The code below shows how to use our algorithms and how to combine them sequentially for superior results.
 
 ```python
 import treepruner
 
-def f(x):
-    return x**2
+# Example custom callable for M_n
+def f(num_leaves):
+    return num_leaves ** 2
 
-# Step 1: Prune using PSFA and save intermediate tree
-first_output, first_percentage = treepruner.prune_tree_PSFA("ST2332.nwk", name_of_output="pre-pruned_tree.nwk")
+# ---------------------------------------------------------
+# Example A: Manual step-by-step combination
+# ---------------------------------------------------------
 
-# Step 2: Further prune using CPA
-final_output, final_percentage = treepruner.prune_tree_CPA("pre-pruned_tree.nwk", threshold=95, M_n=f)
+# Step 1: Prune using PSFA (Returns just the float percentage)
+first_percentage = treepruner.prune_tree_PSFA(
+    "ST2332.nwk", 
+    threshold=90,
+    name_of_output="pre-pruned_tree.nwk"
+)
 
-print(final_percentage)
+# Step 2: Further prune the intermediate file using CPA 
+# (CPA returns the float percentage AND the list of pruned tips)
+final_percentage, pruned_tips = treepruner.prune_tree_CPA(
+    "pre-pruned_tree.nwk", 
+    threshold=95, 
+    M_n=f,
+    name_of_output="manual_final.nwk"
+)
+
+print(f"Manual Pipeline Retained: {final_percentage}%")
+print(f"CPA pruned tips: {len(pruned_tips)}")
+
+
+# ---------------------------------------------------------
+# Example B: Using the built-in Sequential Pipeline
+# ---------------------------------------------------------
+
+# This automatically handles the temp files and rolling budgets!
+combined_percentage = treepruner.prune_tree_PSFA_CPA_PSFA(
+    "ST2332.nwk", 
+    psfa1_threshold=3,
+    cpa_threshold=10,
+    psfa2_threshold=15,
+    M_n=f,
+    name_of_output="auto_combined_final.nwk"
+)
+
+print(f"Auto Combined Pipeline Retained: {combined_percentage}%")
 ```
