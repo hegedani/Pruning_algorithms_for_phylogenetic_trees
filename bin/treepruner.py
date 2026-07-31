@@ -11,11 +11,10 @@ import os
 import sys
 import tempfile
 from dataclasses import dataclass, field, MISSING, fields
-from typing import List, get_origin, Optional
+from typing import List, get_origin, Optional, Any
 import datetime
 import logging
 import csv
-import pdb
 import shutil
 
 # =============
@@ -36,7 +35,7 @@ class PSFAConfig(BaseConfig):
 class CPAConfig(BaseConfig):
 	root_to_node_ratio: float = 0.1
 	min_num_of_roots: int = 15
-	M_n: int = 0
+	M_n: Any = 0
 	beta: int = 20
 	radius_ratio: float = 0
 	safe_tips: List[str] = field(default_factory=list)
@@ -46,6 +45,20 @@ class CPAConfig(BaseConfig):
 @dataclass
 class IQRConfig(BaseConfig):
 	pass
+
+@dataclass
+class PSFACPAPSFAConfig(BaseConfig):
+	psfa1_threshold: int = 5
+	cpa_threshold: int = 10
+	psfa2_threshold: int = 15
+	longest_to_average: int = 9
+	root_to_node_ratio: float = 0.1
+	min_num_of_roots: int = 15
+	M_n: Any = 0
+	beta: int = 20
+	radius_ratio: float = 0
+	safe_tips: List[str] = field(default_factory=list)
+	show_plot: bool = False
 
 
 # =============
@@ -154,7 +167,7 @@ def is_valid_tree(file_path):
 	try:
 		tree_wannabe = ete3.Tree(file_path, format=1)
 		return True
-	except:
+	except Exception:
 		return False
 
 # =============
@@ -191,8 +204,8 @@ def add_config_args(parser, config_class, prefix):
 				group.add_argument(arg_name, dest=f.name, action="store_false", help=f.metadata.get("help", None))
 			else:
 				group.add_argument(arg_name, dest=f.name, action="store_true", help=f.metadata.get("help", None))
-		# Handle int/float safely
-		elif arg_type is int:
+		# Handle int/float safely (Any is used for M_n)
+		elif arg_type is int or arg_type is Any:
 			group.add_argument(arg_name, type=safe_int, default=default, help=f.metadata.get("help", None))
 		elif arg_type is float:
 			group.add_argument(arg_name, type=safe_float, default=default, help=f.metadata.get("help", None))
@@ -206,9 +219,10 @@ def parse_args():
 	"""Parse command-line arguments."""
 	parser = argparse.ArgumentParser(
 		description="Prune trees using one or more methods:\n"
-					"      CPA  - Circular Pruning Algorithm\n"
-					"      IQR  - Interquartile Range approach\n"
-					"      PSFA - Primitive Straight-Forward approach",
+					"      CPA           - Circular Pruning Algorithm\n"
+					"      IQR           - Interquartile Range approach\n"
+					"      PSFA          - Primitive Straight-Forward approach\n"
+					"      PSFA_CPA_PSFA - Sequential pruning (PSFA -> CPA -> PSFA)",
 					formatter_class=CustomFormatter
 	)
 
@@ -230,14 +244,14 @@ def parse_args():
 	parser.add_argument(
 		"-m", "--methods",
 		nargs="+", default=["PSFA","CPA"],
-		choices=["PSFA","CPA","IQR"],
-		help="List of methods to apply (space-separated, e.g., 'CPA IQR PSFA')"
+		choices=["PSFA","CPA","IQR", "PSFA_CPA_PSFA"],
+		help="List of methods to apply (space-separated, e.g., 'CPA IQR PSFA_CPA_PSFA')"
 	)
 	parser.add_argument("--log", default="treepruner.log", help="Log file path")
 	parser.add_argument("--output_dir", default=".", help="Directory to save all output trees and reports")
 
 	# Add method-specific arguments
-	for cfg_class, prefix in [(PSFAConfig, "psfa"), (CPAConfig, "cpa"), (IQRConfig, "iqr")]:
+	for cfg_class, prefix in [(PSFAConfig, "psfa"), (CPAConfig, "cpa"), (IQRConfig, "iqr"), (PSFACPAPSFAConfig, "psfacpa")]:
 		parser = add_config_args(parser, cfg_class, prefix)
 
 	return parser.parse_args()
@@ -284,15 +298,15 @@ def build_config(config_class, prefix, args):
 def validate_configs(configs, methods):
 	"""Validate ranges and constraints for all pruning configs."""
 	
-	psfa = configs["PSFA"]
 	if "PSFA" in methods:
+		psfa = configs["PSFA"]
 		if not (0 <= psfa.threshold <= 100):
 			raise ValueError(f"PSFA threshold {psfa.threshold} must be between 0 and 100")
 		if psfa.longest_to_average < 0:
 			raise ValueError(f"PSFA longest_to_average {psfa.longest_to_average} must be >= 0")
 	
-	cpa = configs["CPA"]
 	if "CPA" in methods:
+		cpa = configs["CPA"]
 		if not (0 <= cpa.threshold <= 100):
 			raise ValueError(f"CPA threshold {cpa.threshold} must be between 0 and 100")
 		if not (0 <= cpa.beta <= 100):
@@ -306,11 +320,15 @@ def validate_configs(configs, methods):
 		if not all(isinstance(tip, str) for tip in cpa.safe_tips):
 			raise TypeError("CPA safe_tips must be a list of strings")
 
-	iqr = configs["IQR"]
 	if "IQR" in methods:
+		iqr = configs["IQR"]
 		if not (0 <= iqr.threshold <= 100):
 			raise ValueError(f"IQR threshold {iqr.threshold} must be between 0 and 100")
 
+	if "PSFA_CPA_PSFA" in methods:
+		pcp = configs["PSFA_CPA_PSFA"]
+		if not (0 <= pcp.psfa1_threshold <= 100) or not (0 <= pcp.cpa_threshold <= 100) or not (0 <= pcp.psfa2_threshold <= 100):
+			raise ValueError("All PSFA_CPA_PSFA thresholds must be between 0 and 100")
 
 
 # =============
@@ -327,6 +345,8 @@ def calculate_iqr_threshold(values):
 	Returns:
 		float: Upper fence threshold = Q3 + 3 * IQR.
 	"""
+	if not values:
+		return 0.0
 	q1, q3 = np.percentile(values, [25, 75])
 	iqr = q3 - q1
 	upper_fence = q3 + 3 * iqr
@@ -488,10 +508,12 @@ def _prune_tree_CPA(config):
 
 	if config.M_n == 0:
 		M_n_int = original_num_leaves
-	elif isinstance(config.M_n, int):
-		M_n_int = max(config.M_n, 1)
+	elif callable(config.M_n):
+		M_n_int = max(int(config.M_n(original_num_leaves)), 1)
+	elif isinstance(config.M_n, (int, float)):
+		M_n_int = max(int(config.M_n), 1)
 	else:
-		raise TypeError("M_n must be int")
+		raise TypeError("M_n must be 0, an integer, or a callable function")
 
 	def hang(tree1, root1):
 		return [tree1.get_distance(root1, leaf) for leaf in tree1.iter_leaves()]
@@ -579,15 +601,88 @@ def _prune_tree_IQR(config):
 	return tree_2, 100 * num_leaves / original_num_leaves
 
 
+def _prune_tree_PSFA_CPA_PSFA(config: PSFACPAPSFAConfig):
+	"""Internal core algorithm for sequential pruning: PSFA -> CPA -> PSFA."""
+	original_tree = ete3.Tree(config.input_tree, format=1, quoted_node_names=True)
+	original_num_leaves = len(original_tree.get_leaves())
+	pruned_tips = []
+
+	with tempfile.TemporaryDirectory() as tmpdir:
+		step1_path = os.path.join(tmpdir, "step1.nwk")
+		step2_path = os.path.join(tmpdir, "step2.nwk")
+
+		# --- STEP 1: PSFA ---
+		psfa1_cfg = PSFAConfig(
+			input_tree=config.input_tree,
+			output=step1_path,
+			threshold=config.psfa1_threshold,
+			longest_to_average=config.longest_to_average
+		)
+		tree1, _ = _prune_tree_PSFA(psfa1_cfg)
+		tree1.write(outfile=step1_path, format=1)
+		
+		leaves_after_step1 = len(tree1.get_leaves())
+		removed_so_far = original_num_leaves - leaves_after_step1
+
+		# --- STEP 2: CPA ---
+		allowed_removed = original_num_leaves * config.cpa_threshold / 100.0
+		remaining_budget = max(0.0, allowed_removed - removed_so_far)
+
+		if remaining_budget == 0:
+			tree2 = tree1
+			tree2.write(outfile=step2_path, format=1)
+		else:
+			current_threshold = 100.0 * remaining_budget / leaves_after_step1
+			cpa_cfg = CPAConfig(
+				input_tree=step1_path,
+				output=step2_path,
+				threshold=current_threshold,
+				root_to_node_ratio=config.root_to_node_ratio,
+				min_num_of_roots=config.min_num_of_roots,
+				M_n=config.M_n,
+				beta=config.beta,
+				radius_ratio=config.radius_ratio,
+				safe_tips=config.safe_tips,
+				show_plot=config.show_plot
+			)
+			tree2, _, pruned_tips = _prune_tree_CPA(cpa_cfg)
+			tree2.write(outfile=step2_path, format=1)
+
+		# --- STEP 3: PSFA ---
+		leaves_after_step2 = len(tree2.get_leaves())
+		removed_so_far = original_num_leaves - leaves_after_step2
+
+		allowed_removed = original_num_leaves * config.psfa2_threshold / 100.0
+		remaining_budget = max(0.0, allowed_removed - removed_so_far)
+
+		if remaining_budget == 0:
+			final_tree = tree2
+		else:
+			current_threshold = 100.0 * remaining_budget / leaves_after_step2
+			psfa2_cfg = PSFAConfig(
+				input_tree=step2_path,
+				output=config.output,
+				threshold=current_threshold,
+				longest_to_average=config.longest_to_average
+			)
+			final_tree, _ = _prune_tree_PSFA(psfa2_cfg)
+
+	percent_remaining = 100.0 * len(final_tree.get_leaves()) / original_num_leaves
+	
+	# Internal algorithm still returns tips just in case the CLI summary needs it later
+	return final_tree, percent_remaining, pruned_tips
+
+
 # =============
-#Pruning methods - to be called from python script
+# Pruning methods - to be called from python script
 # =============
 
 def prune_tree_PSFA(
 		name_of_the_tree: str,
 		threshold: int = 90,
 		longest_to_average: int = 9,
-		name_of_output: str = "psfa_tree.nwk"
+		name_of_output: str = "psfa_tree.nwk",
+		save_output: bool = True
 	) -> float:
 	"""
 	Prune a tree using the PSFA method via Python function call.
@@ -602,6 +697,10 @@ def prune_tree_PSFA(
 		longest_to_average=longest_to_average
 	)
 	tree, percent_left = _prune_tree_PSFA(config)
+	
+	if save_output:
+		tree.write(outfile=name_of_output, format=1)
+		
 	return percent_left
 
 
@@ -609,20 +708,21 @@ def prune_tree_CPA(
 		name_of_the_tree: str,
 		root_to_node_ratio: float = 0.1,
 		min_num_of_roots: int = 15,
-		M_n: int = 0,
+		M_n: Any = 0,
 		threshold: int = 90,
 		beta: float = 20,
 		radius_ratio: float = 0,
 		safe_tips: Optional[List[str]] = None,
 		show_plot: bool = False,
 		show_pruned_tips: bool = False,
-		name_of_output: str = "cpa_tree.nwk"
-	) -> float:
+		name_of_output: str = "cpa_tree.nwk",
+		save_output: bool = True
+	):
 	"""
 	Prune a tree using the CPA method via Python function call.
 
 	Returns:
-		float: Percentage of leaves remaining.
+		tuple: (Percentage of leaves remaining, List of pruned tips)
 	"""
 	if safe_tips is None:
 		safe_tips = []
@@ -641,13 +741,18 @@ def prune_tree_CPA(
 		show_pruned_tips=show_pruned_tips
 	)
 	tree, percent_left, pruned_tips = _prune_tree_CPA(config)
+	
+	if save_output:
+		tree.write(outfile=name_of_output, format=1)
+		
 	return percent_left, pruned_tips
 
 
 def prune_tree_IQR(
 		name_of_the_tree: str,
 		threshold: int = 90,
-		name_of_output: str = "iqr_tree.nwk"
+		name_of_output: str = "iqr_tree.nwk",
+		save_output: bool = True
 	) -> float:
 	"""
 	Prune a tree using the IQR method via Python function call.
@@ -661,7 +766,62 @@ def prune_tree_IQR(
 		threshold=threshold
 	)
 	tree, percent_left = _prune_tree_IQR(config)
+	
+	if save_output:
+		tree.write(outfile=name_of_output, format=1)
+		
 	return percent_left
+
+
+def prune_tree_PSFA_CPA_PSFA(
+		name_of_the_tree: str,
+		psfa1_threshold: int = 5,
+		cpa_threshold: int = 10,
+		psfa2_threshold: int = 15,
+		longest_to_average: int = 9,
+		root_to_node_ratio: float = 0.1,
+		min_num_of_roots: int = 15,
+		M_n: Any = 0,
+		beta: int = 20,
+		radius_ratio: float = 0,
+		safe_tips: Optional[List[str]] = None,
+		show_plot: bool = False,
+		name_of_output: str = "psfa_cpa_psfa_tree.nwk",
+		save_output: bool = True
+	) -> float:
+	"""
+	Sequential pruning: PSFA -> CPA -> PSFA via Python function call.
+
+	Returns:
+		float: Percentage of leaves remaining.
+	"""
+	if safe_tips is None:
+		safe_tips = []
+
+	config = PSFACPAPSFAConfig(
+		input_tree=name_of_the_tree,
+		output=name_of_output,
+		psfa1_threshold=psfa1_threshold,
+		cpa_threshold=cpa_threshold,
+		psfa2_threshold=psfa2_threshold,
+		longest_to_average=longest_to_average,
+		root_to_node_ratio=root_to_node_ratio,
+		min_num_of_roots=min_num_of_roots,
+		M_n=M_n,
+		beta=beta,
+		radius_ratio=radius_ratio,
+		safe_tips=safe_tips,
+		show_plot=show_plot
+	)
+	
+	# Run algorithm; purposefully ignore the pruned_tips list
+	tree, percent_left, _ = _prune_tree_PSFA_CPA_PSFA(config)
+	
+	if save_output:
+		tree.write(outfile=name_of_output, format=1)
+	
+	return percent_left
+
 
 # =============
 # Executing methods
@@ -674,14 +834,18 @@ def run_method_with_stats(method_name, config):
 	"""
 	tree = ete3.Tree(config.input_tree, format=1, quoted_node_names=True)
 	pruned_tips = []
+	
 	if method_name == "PSFA":
 		outtree, percent_remaining = _prune_tree_PSFA(config)
 	elif method_name == "CPA":
 		outtree, percent_remaining, pruned_tips = _prune_tree_CPA(config)
 	elif method_name == "IQR":
 		outtree, percent_remaining = _prune_tree_IQR(config)
+	elif method_name == "PSFA_CPA_PSFA":
+		outtree, percent_remaining, pruned_tips = _prune_tree_PSFA_CPA_PSFA(config)
 	else:
 		raise RuntimeError(f"Unknown method: {method_name}")
+		
 	outtree.write(outfile=config.output, format=1)
 	return outtree, percent_remaining, pruned_tips
 
@@ -756,6 +920,7 @@ def main():
 		"PSFA": build_config(PSFAConfig, "psfa", args),
 		"CPA": build_config(CPAConfig, "cpa", args),
 		"IQR": build_config(IQRConfig, "iqr", args),
+		"PSFA_CPA_PSFA": build_config(PSFACPAPSFAConfig, "psfacpa", args),
 	}
 	
 	
@@ -775,9 +940,8 @@ def main():
 			tb = tb.tb_next
 		line_no = tb.tb_lineno
 		# Print only error type, message, and line number in red
-		logging.error(f"\033[91m[{type(e).__name__}]: line {line_no}: {e}\033[0m", file=sys.stderr)
+		print(f"\033[91m[{type(e).__name__}]: line {line_no}: {e}\033[0m", file=sys.stderr)
 		sys.exit(1)
-
 
 
 if __name__ == "__main__":
